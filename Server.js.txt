@@ -1,0 +1,107 @@
+// Import Solana Web3.js library
+const { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } = require('@solana/web3.js');
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
+
+// Initialize Express app
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Solana connection setup
+const connection = new Connection('https://api.devnet.solana.com', 'confirmed');
+
+/**
+ * Function to create Solana Pay payment link
+ * @param {number} amount - Amount in SOL
+ * @param {string} recipientWallet - Recipient wallet address
+ */
+function createPaymentLink(amount, recipientWallet) {
+  // Convert amount to lamports (smallest unit in Solana)
+  const lamports = amount * LAMPORTS_PER_SOL;
+  
+  // Create payment URL
+  const solanaPayUrl = `solana:${recipientWallet}?amount=${amount}`;
+  
+  return {
+    url: solanaPayUrl,
+    lamports: lamports,
+    recipient: recipientWallet
+  };
+}
+
+/**
+ * Function to verify transaction signature
+ * @param {string} signature - Transaction signature
+ */
+async function verifyTransaction(signature) {
+  try {
+    // Fetch transaction details
+    const transactionDetails = await connection.getTransaction(signature);
+    
+    if (transactionDetails) {
+      return {
+        success: true,
+        details: transactionDetails
+      };
+    } else {
+      return {
+        success: false,        error: 'Transaction not found'
+      };
+    }
+  } catch (error) {
+    console.error('Error verifying transaction:', error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+// POST endpoint for creating payments
+app.post('/api/payment', async (req, res) => {
+  try {
+    const { amount, recipientWallet } = req.body;
+    
+    // Validate inputs
+    if (!amount || !recipientWallet) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+    
+    // Create payment link
+    const paymentLink = createPaymentLink(parseFloat(amount), recipientWallet);
+    
+    // Example: Jakarta supplier paying Singapore supplier
+    console.log(`Payment initiated from Jakarta to Singapore: ${paymentLink.url}`);
+    
+    res.json({
+      success: true,
+      paymentLink: paymentLink,
+      message: 'Payment link created successfully'
+    });
+  } catch (error) {
+    console.error('Error creating payment:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET endpoint for verifying transactions
+app.get('/api/verify/:signature', async (req, res) => {
+  try {
+    const { signature } = req.params;
+    
+    const verificationResult = await verifyTransaction(signature);
+    
+    res.json(verificationResult);
+  } catch (error) {
+    console.error('Error verifying transaction:', error);
+    res.status(500).json({ error: error.message });  }
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Solana connection established on devnet`);
+});

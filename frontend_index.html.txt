@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solana Pay Wholesale Platform</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Solana Pay for Wholesale</h1>
+    
+    <!-- Form input -->
+    <form id="paymentForm">
+      <div class="input-group">
+        <label for="supplierName">Supplier Name:</label>
+        <input type="text" id="supplierName" placeholder="Enter supplier name" required>
+      </div>
+      
+      <div class="input-group">
+        <label for="amount">Amount (SOL):</label>
+        <input type="number" id="amount" step="0.01" min="0.01" placeholder="Enter amount" required>
+      </div>
+      
+      <div class="input-group">
+        <label for="recipientWallet">Recipient Wallet:</label>
+        <input type="text" id="recipientWallet" placeholder="Enter wallet address" required>
+      </div>
+      
+      <button type="submit" id="generateBtn">Generate Solana Pay Link</button>
+    </form>
+    
+    <!-- QR Code display area -->
+    <div id="qrContainer" class="
